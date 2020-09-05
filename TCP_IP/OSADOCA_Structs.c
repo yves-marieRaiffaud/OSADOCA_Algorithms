@@ -1,0 +1,356 @@
+#include <sys/socket.h>
+#include <arpa/inet.h> 
+#include <unistd.h>
+#include <stdbool.h> 
+#include <math.h>
+#include <string.h>
+#include <assert.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+#include "OSADOCA_Structs.h"
+
+typedef struct Vector3d Vector3d;
+typedef struct Quaterniond Quaterniond;
+
+const double PI = 3.1415926535897932384;
+
+// Vector3d Constructor
+Vector3d *NewVector3d(double x, double y, double z)
+{
+    Vector3d *vec = malloc(sizeof(Vector3d));
+    vec->x = x;
+    vec->y = y;
+    vec->z = z;
+    return vec;
+}
+// Add two Vector3d
+Vector3d *V3d_Add(Vector3d *vecA, Vector3d *vecB)
+{
+    struct Vector3d *vec = malloc(sizeof(Vector3d));
+    vec->x = vecA->x + vecB->x;
+    vec->y = vecA->y + vecB->y;
+    vec->z = vecA->z + vecB->z;
+    return vec;
+}
+// Substract two Vector3d
+Vector3d *V3d_Substract(Vector3d *vecA, Vector3d *vecB)
+{
+    Vector3d *vec = malloc(sizeof(Vector3d));
+    vec->x = vecA->x - vecB->x;
+    vec->y = vecA->y - vecB->y;
+    vec->z = vecA->z - vecB->z;
+    return vec;
+}
+// Element wise multiplication of two Vector3d
+Vector3d *V3d_Multiply(Vector3d *vecA, Vector3d *vecB)
+{
+    Vector3d *vec = malloc(sizeof(Vector3d));
+    vec->x = vecA->x * vecB->x;
+    vec->y = vecA->y * vecB->y;
+    vec->z = vecA->z * vecB->z;
+    return vec;
+}
+// Multiplication of a Vector3d by a scalar
+Vector3d *V3d_Multiply_S(double factor, Vector3d *vecA)
+{
+    Vector3d *vec = malloc(sizeof(Vector3d));
+    vec->x = vecA->x * factor;
+    vec->y = vecA->y * factor;
+    vec->z = vecA->z * factor;
+    return vec;
+}
+// Cross product of two Vector3d
+Vector3d *Cross(Vector3d *vecA, Vector3d *vecB)
+{
+    Vector3d *vec = malloc(sizeof(Vector3d));
+    vec->x = vecA->y*vecB->z - vecA->z*vecB->y;
+    vec->y = vecA->z*vecB->x - vecA->x*vecB->z;
+    vec->z = vecA->x*vecB->y - vecA->y*vecB->x;
+    return vec;
+}
+// Square Magnitude of the Vector3d
+double V3d_SqrMagnitude(Vector3d *vec)
+{
+    return pow(vec->x,2) + pow(vec->y,2) + pow(vec->z,2);
+}
+// Magnitude of the Vector3d
+double V3d_Magnitude(Vector3d *vec)
+{
+    return sqrt(V3d_SqrMagnitude(vec));
+}
+// Get string representation of the Vector3d
+char *V3d_ToString(Vector3d *vec, int decimalDigits)
+{
+    int factor = 10 + decimalDigits + 1;
+    char *returnText = malloc((3*factor+4)*sizeof(char));
+    strcpy(returnText, "");
+
+    char *x_string = malloc(factor*sizeof(char));
+    char *y_string = malloc(factor*sizeof(char));
+    char *z_string = malloc(factor*sizeof(char));
+    sprintf(x_string,"%.10f",vec->x);
+    sprintf(y_string,"%.10f",vec->y);
+    sprintf(z_string,"%.10f",vec->z);
+
+    strcat(returnText, "(");
+    strcat(returnText, x_string);
+    strcat(returnText, ";");
+    strcat(returnText, y_string);
+    strcat(returnText, ";");
+    strcat(returnText, z_string);
+    strcat(returnText, ")");
+
+    return returnText;
+}
+//=====================================================================
+//=====================================================================
+//=====================================================================
+//=====================================================================
+
+// Constructor
+Quaterniond *NewQuaterniond(double x,double y,double z,double w)
+{
+    Quaterniond *quat = malloc(sizeof(Quaterniond));
+    quat->x = x;
+    quat->y = y;
+    quat->z = z;
+    quat->w = w;
+    return quat;
+}
+// Constructor for a Pure Quaterniond (a scalar part W of 0)
+Quaterniond *New_Pure_Quaterniond(double x,double y,double z)
+{
+    double w=0;
+    return NewQuaterniond(x,y,z,w);
+}
+// Constructor for an Imaginary Quaterniond (a vectorial part (X,Y,Z) of (0,0,0))
+Quaterniond *New_Imaginary_Quaterniond(double w)
+{
+    double vecVal=0;
+    return NewQuaterniond(vecVal,vecVal,vecVal,w);
+}
+// Returns the conjugate of the specified Quaterniond
+Quaterniond *Q_Conjugate(Quaterniond *quat)
+{
+    Quaterniond *outputQuat = malloc(sizeof(Quaterniond));
+    outputQuat->x = -quat->x;
+    outputQuat->y = -quat->y;
+    outputQuat->z = -quat->z;
+    outputQuat->w = quat->w;
+    return outputQuat;
+}
+// Returns the vectorial part (X,Y,Z) of the Quaterniond
+Vector3d *Q_GetVectorialPart(Quaterniond *quat)
+{
+    Vector3d *vec = malloc(sizeof(Vector3d));
+    vec->x = quat->x;
+    vec->y = quat->y;
+    vec->z = quat->z;
+    return vec;
+}
+// Returns the scalar part (W) of the Quaterniond
+double Q_GetScalarPart(Quaterniond *quat)
+{
+    return quat->w;
+}
+// Returns the square magnitude of the specified quaterniond
+double Q_SqrMagnitude(Quaterniond *quat)
+{
+    double norm = pow(quat->x,2) + pow(quat->y,2) + pow(quat->z,2) + pow(quat->w,2);
+}
+// Returns the magnitude of the specified quaterniond
+double Q_Magnitude(Quaterniond *quat)
+{
+    return sqrt(Q_SqrMagnitude(quat));
+}
+// Normalize the specified Quaterniond
+Quaterniond *Q_Normalize(Quaterniond *quat)
+{
+    Quaterniond *outputQuat = malloc(sizeof(Quaterniond));
+    outputQuat = quat;
+    double norm = Q_Magnitude(outputQuat);
+    outputQuat->x = outputQuat->x/norm;
+    outputQuat->y = outputQuat->y/norm;
+    outputQuat->z = outputQuat->z/norm;
+    outputQuat->w = outputQuat->w/norm;
+    return outputQuat;
+}
+// Creates new Quaterniond from the specified Euler angles. Angles must be specified in degrees
+Quaterniond *NewQuaterniond_From_Euler(double xAngle,double yAngle,double zAngle)
+{
+    double cr = cos(xAngle*PI/360);
+	double sr = sin(xAngle*PI/360);
+	double cy = cos(yAngle*PI/360);
+	double sy = sin(yAngle*PI/360);
+	double cp = cos(zAngle*PI/360);
+	double sp = sin(zAngle*PI/360);
+	
+    Quaterniond *quat = malloc(sizeof(Quaterniond));
+    quat->x = cp*sr*cy+cr*sy*sp;
+    quat->y = cp*cr*sy-sp*sr*cy;
+    quat->z = cp*sr*sy+sp*cr*cy;
+    quat->w = cr*cy*cp-sp*sy*sr;
+	return Q_Normalize(quat);
+}
+// Convert the specified Quaterniond to its representation using Euler angles in degrees
+Vector3d *Q_ConvertToEulerAngles(Quaterniond *quat)
+{
+    // Quaternion order: XYZ
+    double x = quat->x;
+    double y = quat->y;
+    double z = quat->z;
+    double w = quat->w;
+	
+	// Angles computed in radian, then converted to degrees
+	float roll = atan2(-2*(y*z-w*x),w*w-x*x-y*y+z*z)*180/PI;
+	float yaw = asin(2*(x*z+w*y))*180/PI;
+	float pitch = atan2(-2*(x*y-w*z),w*w+x*x-y*y-z*z)*180/PI;
+
+	Vector3d *vec = malloc(sizeof(Vector3d));
+	vec->x = roll;
+	vec->y = yaw;
+	vec->z = pitch;
+    return vec;
+}
+// Multiply two quaternions, applying first rotation 'quatA', then 'quatB'
+Quaterniond *Q_QuatMultiply(Quaterniond *quatA, Quaterniond *quatB)
+{
+    double a = quatA->x;
+    double b = quatA->y;
+    double c = quatA->z;
+    double d = quatA->w;
+
+    double e = quatB->x;
+    double f = quatB->y;
+    double g = quatB->z;
+    double h = quatB->w;
+
+	Quaterniond *outputQuat = malloc(sizeof(Quaterniond));
+	outputQuat->x = a*f+b*e+c*h-d*g;
+	outputQuat->y = a*g-b*h+c*e+d*f;
+	outputQuat->z = a*h+b*g-c*f+d*e;
+    outputQuat->w = a*e-b*f-c*g-d*h;
+    return outputQuat;
+}
+// Rotates a 3D point 'vec' by rotation 'quatA'
+Vector3d *Q_RotateVec(Quaterniond *quatA, Vector3d *vec)
+{
+    // Creating the pure Quaternion associated with 'pointVec'
+    Quaterniond *point = New_Pure_Quaterniond(vec->x, vec->y, vec->z);
+    
+    Quaterniond *q = Q_Normalize(quatA);
+    Quaterniond *qStar = Q_Conjugate(q);
+    Quaterniond *output = Q_QuatMultiply(Q_QuatMultiply(q, point), qStar);
+    Vector3d *rotatedVec = Q_GetVectorialPart(output);
+    return rotatedVec;
+}
+// Returns the string representation of the specified Quaterniond: (x;y;z;w)
+char *Q_ToString(Quaterniond *quat, int decimalDigits)
+{
+    int factor = 10 + decimalDigits + 1;
+    char *returnText = malloc((3*factor+4)*sizeof(char));
+    strcpy(returnText,"");
+
+    char *x_string = malloc(factor*sizeof(char));
+    char *y_string = malloc(factor*sizeof(char));
+    char *z_string = malloc(factor*sizeof(char));
+    char *w_string = malloc(factor*sizeof(char));
+    sprintf(x_string,"%.10f",quat->x);
+    sprintf(y_string,"%.10f",quat->y);
+    sprintf(z_string,"%.10f",quat->z);
+    sprintf(w_string,"%.10f",quat->w);
+
+    strcat(returnText, "(");
+    strcat(returnText, x_string);
+    strcat(returnText, ";");
+    strcat(returnText, y_string);
+    strcat(returnText, ";");
+    strcat(returnText, z_string);
+    strcat(returnText, ";");
+    strcat(returnText, w_string);
+    strcat(returnText, ")");
+
+    return returnText;
+}
+
+SimEnvStruct *Parse_SimEnv_ReceivedData(char *simEnvReceivedData, char *delimiter, SimEnvStruct *simEnvData, bool printToConsole)
+{
+    //================================
+    // Ship acceleration (in m/s^2)
+    // Ship velocity (in m/s)
+    // Ship velocity increment (in m/s)
+    // Ship world position in the scene (in unity units)
+    // Ship Delta Rotation Quaterniond
+    //================================
+    int nbElementsExtracted = 0;
+    char **tokens = Split_String(simEnvReceivedData, delimiter, &nbElementsExtracted);
+    assert(nbElementsExtracted-1 == 16); // '-1' because last extracted character is the null terminator 
+    simEnvData->shipAcc = NewVector3d(atof(*(tokens + 0)), atof(*(tokens + 1)), atof(*(tokens + 2)));
+    simEnvData->shipVelocity = NewVector3d(atof(*(tokens + 3)), atof(*(tokens + 4)), atof(*(tokens + 5)));
+    simEnvData->shipVelocityIncr = NewVector3d(atof(*(tokens + 6)), atof(*(tokens + 7)), atof(*(tokens + 8)));
+    simEnvData->shipWorldPos = NewVector3d(atof(*(tokens + 9)), atof(*(tokens + 10)), atof(*(tokens + 11)));
+    simEnvData->deltaRotation = NewQuaterniond(atof(*(tokens + 12)), atof(*(tokens + 13)), atof(*(tokens + 14)), atof(*(tokens + 15)));
+
+    if(printToConsole)
+    {
+        printf(V3d_ToString(simEnvData->shipAcc, 5));
+        printf("\n");
+        printf(V3d_ToString(simEnvData->shipVelocity, 5));
+        printf("\n");
+        printf(V3d_ToString(simEnvData->shipVelocityIncr, 5));
+        printf("\n");
+        printf(V3d_ToString(simEnvData->shipWorldPos, 5));
+        printf("\n");
+        printf(Q_ToString(simEnvData->deltaRotation, 5));
+        printf("\n\n");
+    }
+    // Prints the tokens to the console
+    /*int i;
+    for (i = 0; *(tokens + i); i++)
+    {
+        printf("data=%s\n", *(tokens + i));
+        free(*(tokens + i));
+    }
+    printf("\n");
+    free(tokens);*/
+}
+
+char **Split_String(char *stringToParse, char *delimiter, int *nbElemsToExtract)
+{
+    char** result = 0;
+    char *tmp = stringToParse;
+    char *rest = NULL;
+    char *token;
+    char* last_comma = 0; // last delimiter
+    //=======
+    int nbElements = 0;
+    int i;
+    int count = strlen(stringToParse)+1;
+    char strArr[count];
+    for(i = 0; stringToParse[i]; i++)
+    {
+        strArr[i] = stringToParse[i];
+        if(stringToParse[i] == *delimiter)
+            nbElements++;
+    }
+    //=======
+    /* Add space for trailing token. */
+    nbElements += last_comma < (stringToParse + strlen(stringToParse) - 1);
+    /* Add space for terminating null string so caller
+       knows where the list of returned strings ends. */
+    nbElements++;
+
+    *nbElemsToExtract = nbElements;
+    result = malloc(sizeof(char*) * nbElements);
+    size_t idx  = 0;
+    for(token = strtok_r(strArr, delimiter, &rest); token != NULL; token = strtok_r(NULL, delimiter, &rest))
+    {   
+        assert(idx < nbElements);
+        *(result + idx++) = strdup(token);
+    }
+    assert(idx == nbElements - 1);
+    *(result + idx) = 0;
+    //=======
+    return result;
+}
