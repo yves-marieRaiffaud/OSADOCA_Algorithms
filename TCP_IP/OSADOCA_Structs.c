@@ -12,6 +12,7 @@
 
 typedef struct Vector3d Vector3d;
 typedef struct Quaterniond Quaterniond;
+typedef struct Orbit_Shape Orbit_Shape;
 
 const double PI = 3.1415926535897932384;
 
@@ -285,12 +286,13 @@ SimEnvStruct *Parse_SimEnv_ReceivedData(char *simEnvReceivedData, char *delimite
     //================================
     int nbElementsExtracted = 0;
     char **tokens = Split_String(simEnvReceivedData, delimiter, &nbElementsExtracted);
-    assert(nbElementsExtracted-1 == 16); // '-1' because last extracted character is the null terminator 
+    assert(nbElementsExtracted-1 == 19); // '-1' because last extracted character is the null terminator 
     simEnvData->shipAcc = NewVector3d(atof(*(tokens + 0)), atof(*(tokens + 1)), atof(*(tokens + 2)));
     simEnvData->shipVelocity = NewVector3d(atof(*(tokens + 3)), atof(*(tokens + 4)), atof(*(tokens + 5)));
     simEnvData->shipVelocityIncr = NewVector3d(atof(*(tokens + 6)), atof(*(tokens + 7)), atof(*(tokens + 8)));
     simEnvData->shipWorldPos = NewVector3d(atof(*(tokens + 9)), atof(*(tokens + 10)), atof(*(tokens + 11)));
-    simEnvData->deltaRotation = NewQuaterniond(atof(*(tokens + 12)), atof(*(tokens + 13)), atof(*(tokens + 14)), atof(*(tokens + 15)));
+    simEnvData->shipWorldPos = NewVector3d(atof(*(tokens + 12)), atof(*(tokens + 13)), atof(*(tokens + 14)));
+    simEnvData->deltaRotation = NewQuaterniond(atof(*(tokens + 15)), atof(*(tokens + 16)), atof(*(tokens + 17)), atof(*(tokens + 18)));
 
     if(printToConsole)
     {
@@ -354,3 +356,60 @@ char **Split_String(char *stringToParse, char *delimiter, int *nbElemsToExtract)
     //=======
     return result;
 }
+//=====================================================================
+//=====================================================================
+//=====================================================================
+//=====================================================================
+OrbitShape *New_OrbitShape_rarp(double ra, double rp)
+{
+    OrbitShape *orbit = malloc(sizeof(OrbitShape));
+    orbit->ra = ra;
+    orbit->rp = rp;
+    orbit->e = (ra-rp)/(ra+rp);
+    orbit->p = 2*ra*rp/(ra+rp);
+    orbit->a = (ra+rp)/2;
+    orbit->c = orbit->e*orbit->a;
+    orbit->b = sqrt(orbit->p*orbit->a);
+    return orbit;
+}
+
+OrbitShape *New_OrbitShape_rae(double ra, double e)
+{
+    OrbitShape *orbit = malloc(sizeof(OrbitShape));
+    orbit->ra = ra;
+    orbit->e = e;
+    orbit->rp = ra*(1-e)/(1+e);
+    orbit->p = 2*ra*orbit->rp/(ra+orbit->rp);
+    orbit->a = (ra+orbit->rp)/2;
+    orbit->c = e*orbit->a;
+    orbit->b = sqrt(orbit->p*orbit->a);
+    return orbit;
+}
+
+OrbitShape *New_OrbitShape_rpe(double rp, double e)
+{
+    OrbitShape *orbit = malloc(sizeof(OrbitShape));
+    orbit->rp = rp;
+    orbit->e = e;
+    orbit->ra = rp*(e-1)/(1-e);
+    orbit->p = 2*orbit->ra*rp/(orbit->ra+rp);
+    orbit->a = (orbit->ra+rp)/2;
+    orbit->c = e*orbit->a;
+    orbit->b = sqrt(orbit->p*orbit->a);
+    return orbit;
+}
+
+OrbitShape *New_OrbitShape_pe(double p, double e)
+{
+    OrbitShape *orbit = malloc(sizeof(OrbitShape));
+    orbit->p = p;
+    orbit->e = e;
+    orbit->a = p/(1-pow(e,2));
+    orbit->b = sqrt(p*orbit->a);
+    orbit->c = orbit->a*e;
+    orbit->ra = orbit->a + orbit->c;
+    orbit->rp = 2*orbit->a - orbit->ra;
+    return orbit;
+}
+
+

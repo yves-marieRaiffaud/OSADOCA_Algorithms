@@ -21,6 +21,10 @@ typedef struct Quaterniond Quaterniond;
 typedef struct SimEnvStruct SimEnvStruct;
 #include "Lambert.c"
 
+#include "Impact_Restitution.c"
+
+#include "Constants.c"
+
 //==========================================
 #define SIM_ENV_DATA_DELIMITER ";"
 #define PERIOD_POWER_NUMBER_RECEIVING_SIMENV 9
@@ -123,7 +127,9 @@ bool Check_ARGV(int argc)
 
 int main(int argc, char *argv[])
 {
-    simEnvData = malloc(sizeof(SimEnvStruct));
+    printf("value = %.15f\n", muEarth*muExponent);
+    OrbitShape *shape = Orbit_From_RV(NewVector3d(0,0,6578000), NewVector3d(7784,0,0), muEarth*muExponent);
+    /*simEnvData = malloc(sizeof(SimEnvStruct));
     //=====DEBUG PURPOSES
     //char *str = "1 ; 2 ; 3.14 ; 4 ; 5 ; 6 ; 7.241 ; 8.2412 ; 9.141 ; 10.21 ; 11.531 ; 12.2352 ; 0.01 ; 0.02 ; 0.03 ; 0.04";
     //Parse_SimEnv_ReceivedData(str, SIM_ENV_DATA_DELIMITER, simEnvData, true);
@@ -153,9 +159,8 @@ int main(int argc, char *argv[])
     rt_task_spawn(&controlOrdersSendingTask,"ControlOrderSending_Task",0,98,T_JOINABLE,&SendingTask_Periodic, clientControlOrders);
     rt_task_spawn(&navAlgoTask,"NavigationAlgo_Task",0,97,T_JOINABLE,&Navigation_Algo_Periodic, NULL);
 
-
     pause();
     clientSimEnv->m_SocketTerminate(clientSimEnv);
-    clientControlOrders->m_SocketTerminate(clientControlOrders);
+    clientControlOrders->m_SocketTerminate(clientControlOrders);*/
     return 0;
 }

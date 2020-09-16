@@ -3,7 +3,6 @@
 
 extern const double PI;
 
-// Equivalent in C of the Unity Vector3d class
 typedef struct Vector3d {
     double x;
     double y;
@@ -69,6 +68,7 @@ typedef struct SimEnvStruct{
     Vector3d *shipAcc;
     Vector3d *shipVelocity;
     Vector3d *shipVelocityIncr;
+    Vector3d *radialVec;
     Vector3d *shipWorldPos;
     Quaterniond *deltaRotation;
 } SimEnvStruct;
@@ -78,4 +78,18 @@ SimEnvStruct *Parse_SimEnv_ReceivedData(char *simEnvReceivedData, char *delimite
 char **Split_String(char *stringToParse, char *delimiter, int *nbElemsToExtract);
 //==========================
 //==========================
+typedef struct OrbitShape {
+    double ra;
+    double rp;
+    double e;
+    double p;
+    double a;
+    double b;
+    double c;
+}OrbitShape;
+typedef struct OrbitShape OrbitShape;
+OrbitShape *New_OrbitShape_rarp(double ra, double rp);
+OrbitShape *New_OrbitShape_rae(double ra, double e);
+OrbitShape *New_OrbitShape_rpe(double rp, double e);
+OrbitShape *New_OrbitShape_pe(double p, double e);
 #endif

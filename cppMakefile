@@ -1,0 +1,47 @@
+# Xenomai setup
+XENO_CONFIG := /usr/xenomai/bin/xeno-config
+XENO_CFLAGS := $(shell $(XENO_CONFIG) --rtdm --alchemy --cflags)
+XENO_LDFLAGS := $(shell $(XENO_CONFIG) --rtdm --alchemy --ldflags)
+CC := /usr/bin/gcc
+# The Target
+EXECUTABLE := cppmain
+# The Directories, Source, Includes, Objects
+SRCDIR := src
+INCDIR := inc
+BUILDDIR := obj
+SRCEXT := c
+INCEXT := h
+OBJEXT := o
+# Flags, Libraries and Includes
+CFLAGS := $(XENO_CFLAGS) -Wall -O3 -std=c11
+LDFLAGS := $(XENO_LDFLAGS) -Xlinker -Map=$(TARGET).map
+INC := -I$(INCDIR)
+INCDEP := -I$(INCDIR)
+#
+# DO NOT EDIT BELOW THIS LINE
+#
+SOURCES := $(wildcard $(SRCDIR)/*.$(SRCEXT))
+INCLUDES := $(wildcard $(INCDIR)/*.$(INCEXT))
+OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJEXT)))
+# Default Make
+all: $(TARGET)
+# Make the Directories
+directories:
+@mkdir -p $(BUILDDIR)
+# Clean
+clean:
+@$(RM) -r $(BUILDDIR) $(TARGET) *.map
+@echo "cleaned"
+# Link
+$(TARGET): $(OBJECTS)
+@echo Linking $@
+@$(CC) -o $(TARGET) $^ $(LDFLAGS)
+67
+@size $(TARGET)
+# Compile
+$(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)
+@echo "building "$@
+@mkdir -p $(dir $@)
+@$(CC) $(CFLAGS) $(INC) -c -o $@ $<
+# Non-File Targets
+.PHONY: clean
