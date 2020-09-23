@@ -8,13 +8,36 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include "../Constants.h"
 #include "OSADOCA_Structs.h"
 
 typedef struct Vector3d Vector3d;
 typedef struct Quaterniond Quaterniond;
 typedef struct Orbit_Shape Orbit_Shape;
 
-const double PI = 3.1415926535897932384;
+double ClampAngle_Deg(double lowerBound, double upperBound, double valueToClamp)
+{
+    int newAngle = valueToClamp;
+    while(newAngle <= lowerBound) {
+        newAngle = newAngle + 360;
+    }
+    while(newAngle > upperBound) {
+        newAngle = newAngle - 360;
+    }
+    return newAngle;
+}
+
+double ClampAngle_RAD(double lowerBound, double upperBound, double valueToClamp)
+{
+    int newAngle = valueToClamp;
+    while(newAngle <= lowerBound) {
+        newAngle = newAngle + 2*PI;
+    }
+    while(newAngle > upperBound) {
+        newAngle = newAngle - 2*PI;
+    }
+    return newAngle;
+}
 
 // Vector3d Constructor
 Vector3d *NewVector3d(double x, double y, double z)
@@ -25,6 +48,33 @@ Vector3d *NewVector3d(double x, double y, double z)
     vec->z = z;
     return vec;
 }
+
+// Right, Left, Up, Down, Forward, Backward vectors
+Vector3d *V3d_Right()
+{
+    return NewVector3d(1,0,0);
+}
+Vector3d *V3d_Left()
+{
+    return NewVector3d(-1,0,0);
+}
+Vector3d *V3d_Forward()
+{
+    return NewVector3d(0,0,1);
+}
+Vector3d *V3d_Backward()
+{
+    return NewVector3d(0,0,-1);
+}
+Vector3d *V3d_Up()
+{
+    return NewVector3d(0,1,0);
+}
+Vector3d *V3d_Down()
+{
+    return NewVector3d(0,-1,0);
+}
+
 // Add two Vector3d
 Vector3d *V3d_Add(Vector3d *vecA, Vector3d *vecB)
 {
@@ -43,7 +93,12 @@ Vector3d *V3d_Substract(Vector3d *vecA, Vector3d *vecB)
     vec->z = vecA->z - vecB->z;
     return vec;
 }
-// Element wise multiplication of two Vector3d
+// Dot product of two Vector3d
+double V3d_Dot(Vector3d *vecA, Vector3d *vecB)
+{
+    return vecA->x*vecB->x + vecA->y*vecB->y + vecA->z * vecB->z;
+}
+// Multiplication of a Vector3d by a scalar
 Vector3d *V3d_Multiply(Vector3d *vecA, Vector3d *vecB)
 {
     Vector3d *vec = malloc(sizeof(Vector3d));
@@ -61,8 +116,17 @@ Vector3d *V3d_Multiply_S(double factor, Vector3d *vecA)
     vec->z = vecA->z * factor;
     return vec;
 }
+// Division of a Vector3d by a scalar
+Vector3d *V3d_Divide_S(Vector3d *vecA, double denominator)
+{
+    Vector3d *vec = malloc(sizeof(Vector3d));
+    vec->x = vecA->x/denominator;
+    vec->y = vecA->y/denominator;
+    vec->z = vecA->z/denominator;
+    return vec;
+}
 // Cross product of two Vector3d
-Vector3d *Cross(Vector3d *vecA, Vector3d *vecB)
+Vector3d *V3d_Cross(Vector3d *vecA, Vector3d *vecB)
 {
     Vector3d *vec = malloc(sizeof(Vector3d));
     vec->x = vecA->y*vecB->z - vecA->z*vecB->y;
@@ -84,7 +148,7 @@ double V3d_Magnitude(Vector3d *vec)
 char *V3d_ToString(Vector3d *vec, int decimalDigits)
 {
     int factor = 10 + decimalDigits + 1;
-    char *returnText = malloc((3*factor+4)*sizeof(char));
+    char *returnText = malloc((3*factor+5)*sizeof(char));
     strcpy(returnText, "");
 
     char *x_string = malloc(factor*sizeof(char));
@@ -100,7 +164,7 @@ char *V3d_ToString(Vector3d *vec, int decimalDigits)
     strcat(returnText, y_string);
     strcat(returnText, ";");
     strcat(returnText, z_string);
-    strcat(returnText, ")");
+    strcat(returnText, ")\n");
 
     return returnText;
 }
@@ -250,7 +314,7 @@ Vector3d *Q_RotateVec(Quaterniond *quatA, Vector3d *vec)
 char *Q_ToString(Quaterniond *quat, int decimalDigits)
 {
     int factor = 10 + decimalDigits + 1;
-    char *returnText = malloc((3*factor+4)*sizeof(char));
+    char *returnText = malloc((3*factor+5)*sizeof(char));
     strcpy(returnText,"");
 
     char *x_string = malloc(factor*sizeof(char));
@@ -270,7 +334,7 @@ char *Q_ToString(Quaterniond *quat, int decimalDigits)
     strcat(returnText, z_string);
     strcat(returnText, ";");
     strcat(returnText, w_string);
-    strcat(returnText, ")");
+    strcat(returnText, ")\n");
 
     return returnText;
 }
@@ -360,9 +424,9 @@ char **Split_String(char *stringToParse, char *delimiter, int *nbElemsToExtract)
 //=====================================================================
 //=====================================================================
 //=====================================================================
-OrbitShape *New_OrbitShape_rarp(double ra, double rp)
+OrbitParams *New_OrbitParams_rarp(double ra, double rp)
 {
-    OrbitShape *orbit = malloc(sizeof(OrbitShape));
+    OrbitParams *orbit = malloc(sizeof(OrbitParams));
     orbit->ra = ra;
     orbit->rp = rp;
     orbit->e = (ra-rp)/(ra+rp);
@@ -373,9 +437,9 @@ OrbitShape *New_OrbitShape_rarp(double ra, double rp)
     return orbit;
 }
 
-OrbitShape *New_OrbitShape_rae(double ra, double e)
+OrbitParams *New_OrbitParams_rae(double ra, double e)
 {
-    OrbitShape *orbit = malloc(sizeof(OrbitShape));
+    OrbitParams *orbit = malloc(sizeof(OrbitParams));
     orbit->ra = ra;
     orbit->e = e;
     orbit->rp = ra*(1-e)/(1+e);
@@ -386,9 +450,9 @@ OrbitShape *New_OrbitShape_rae(double ra, double e)
     return orbit;
 }
 
-OrbitShape *New_OrbitShape_rpe(double rp, double e)
+OrbitParams *New_OrbitParams_rpe(double rp, double e)
 {
-    OrbitShape *orbit = malloc(sizeof(OrbitShape));
+    OrbitParams *orbit = malloc(sizeof(OrbitParams));
     orbit->rp = rp;
     orbit->e = e;
     orbit->ra = rp*(e-1)/(1-e);
@@ -399,9 +463,9 @@ OrbitShape *New_OrbitShape_rpe(double rp, double e)
     return orbit;
 }
 
-OrbitShape *New_OrbitShape_pe(double p, double e)
+OrbitParams *New_OrbitParams_pe(double p, double e)
 {
-    OrbitShape *orbit = malloc(sizeof(OrbitShape));
+    OrbitParams *orbit = malloc(sizeof(OrbitParams));
     orbit->p = p;
     orbit->e = e;
     orbit->a = p/(1-pow(e,2));
@@ -411,5 +475,57 @@ OrbitShape *New_OrbitShape_pe(double p, double e)
     orbit->rp = 2*orbit->a - orbit->ra;
     return orbit;
 }
+
+OrbitParams *New_OrbitParams_pe_all(double p, double e, double i, double lAscN, double omega, double trueAnomaly)
+{
+    OrbitParams *orbit = New_OrbitParams_pe(p, e);
+    orbit->i = i;
+    orbit->lAscN = lAscN;
+    orbit->omega = omega;
+    orbit->trueAnomaly = trueAnomaly;
+    return orbit;
+}
+
+char *OrbitParams_ToString(OrbitShape *orbitShape, int decimalDigits)
+{
+    int factor = 10 + decimalDigits + 1;
+    char *returnText = malloc((7*factor+23)*sizeof(char));
+    strcpy(returnText,"");
+
+    char *ra_string = malloc(factor*sizeof(char));
+    char *rp_string = malloc(factor*sizeof(char));
+    char *e_string = malloc(factor*sizeof(char));
+    char *p_string = malloc(factor*sizeof(char));
+    char *a_string = malloc(factor*sizeof(char));
+    char *b_string = malloc(factor*sizeof(char));
+    char *c_string = malloc(factor*sizeof(char));
+    sprintf(ra_string,"%.10f",orbitShape->ra);
+    sprintf(rp_string,"%.10f",orbitShape->rp);
+    sprintf(e_string,"%.10f",orbitShape->e);
+    sprintf(p_string,"%.10f",orbitShape->p);
+    sprintf(a_string,"%.10f",orbitShape->a);
+    sprintf(b_string,"%.10f",orbitShape->b);
+    sprintf(c_string,"%.10f",orbitShape->c);
+
+    strcat(returnText, "ra:");
+    strcat(returnText, ra_string);
+    strcat(returnText, "; rp:");
+    strcat(returnText, rp_string);
+    strcat(returnText, "; e:");
+    strcat(returnText, e_string);
+    strcat(returnText, "; p:");
+    strcat(returnText, p_string);
+    strcat(returnText, "; a:");
+    strcat(returnText, a_string);
+    strcat(returnText, "; b:");
+    strcat(returnText, b_string);
+    strcat(returnText, "; c:");
+    strcat(returnText, c_string);
+    strcat(returnText, "\n");
+
+    return returnText;
+}
+
+
 
 

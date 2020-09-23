@@ -14,16 +14,16 @@
 #include <alchemy/timer.h>
 //====
 #include "TCP_IP_Client.c"
-typedef struct TCP_IP_Client TCP_IP_Client;
 #include "OSADOCA_Structs.c"
+#include "Lambert.c"
+#include "Impact_Restitution.c"
+#include "Constants.h"
+#include "Constants.c"
+
+typedef struct TCP_IP_Client TCP_IP_Client;
 typedef struct Vector3d Vector3d;
 typedef struct Quaterniond Quaterniond;
 typedef struct SimEnvStruct SimEnvStruct;
-#include "Lambert.c"
-
-#include "Impact_Restitution.c"
-
-#include "Constants.c"
 
 //==========================================
 #define SIM_ENV_DATA_DELIMITER ";"
@@ -127,8 +127,19 @@ bool Check_ARGV(int argc)
 
 int main(int argc, char *argv[])
 {
-    printf("value = %.15f\n", muEarth*muExponent);
-    OrbitShape *shape = Orbit_From_RV(NewVector3d(0,0,6578000), NewVector3d(7784,0,0), muEarth*muExponent);
+    OrbitParams *orbitParams = Orbit_From_RV(NewVector3d(0,0,6578000), NewVector3d(5000,0,0), muEarth*pow(10,muExponent));
+    printf(OrbitParams_ToString(orbitParams, 5));
+
+    if(orbitParams->rp <= equaREarth) {
+        printf("Will crash on Earth's surface !\n");
+    }
+    else {
+        printf("Will NOT crash on Earth's surface !\n");
+    }
+
+    printf("\n");
+    Vector3d *impactPoints = ComputeImpactPoints(orbitParams, equaREarth);
+
     /*simEnvData = malloc(sizeof(SimEnvStruct));
     //=====DEBUG PURPOSES
     //char *str = "1 ; 2 ; 3.14 ; 4 ; 5 ; 6 ; 7.241 ; 8.2412 ; 9.141 ; 10.21 ; 11.531 ; 12.2352 ; 0.01 ; 0.02 ; 0.03 ; 0.04";

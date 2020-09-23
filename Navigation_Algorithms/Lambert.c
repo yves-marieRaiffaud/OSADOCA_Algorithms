@@ -10,6 +10,8 @@
 #include <time.h>
 #include <Lambert.h>
 
+#include "../Constants.h"
+
 typedef struct SimEnvStruct SimEnvStruct;
 
 // simEnvData at step (t-1)

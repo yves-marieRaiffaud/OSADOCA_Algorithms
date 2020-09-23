@@ -1,8 +1,6 @@
 #ifndef OSADOCA_STRUCTS
 #define OSADOCA_STRUCTS
 
-extern const double PI;
-
 typedef struct Vector3d {
     double x;
     double y;
@@ -10,15 +8,28 @@ typedef struct Vector3d {
 }Vector3d;
 typedef struct Vector3d Vector3d;
 
+double ClampAngle_Deg(double lowerBound, double upperBound, double valueToClamp);
+double ClampAngle_RAD(double lowerBound, double upperBound, double valueToClamp);
+
 Vector3d *NewVector3d(double x, double y, double z);
+Vector3d *V3d_Right();
+Vector3d *V3d_Left();
+Vector3d *V3d_Forward();
+Vector3d *V3d_Backward();
+Vector3d *V3d_Up();
+Vector3d *V3d_Down();
 Vector3d *V3d_Add(Vector3d *vecA, Vector3d *vecB);
 Vector3d *V3d_Substract(Vector3d *vecA, Vector3d *vecB);
-// Element wise multiplication of two Vector3d
+// Dot product of two Vector3d
+double V3d_Dot(Vector3d *vecA, Vector3d *vecB);
+// Element-Wise Multiplication of a Vector3d by a scalar
 Vector3d *V3d_Multiply(Vector3d *vecA, Vector3d *vecB);
 // Multiplication of a Vector3d by a scalar
 Vector3d *V3d_Multiply_S(double factor, Vector3d *vecA);
+// Division of a Vector3d by a scalar
+Vector3d *V3d_Divide_S(Vector3d *vecA, double denominator);
 // Cross product of two Vector3d
-Vector3d *Cross(Vector3d *vecA, Vector3d *vecB);
+Vector3d *V3d_Cross(Vector3d *vecA, Vector3d *vecB);
 // Magnitude of the Vector3d
 double V3d_Magnitude(Vector3d *vec);
 // Square Magnitude of the Vector3d
@@ -78,7 +89,7 @@ SimEnvStruct *Parse_SimEnv_ReceivedData(char *simEnvReceivedData, char *delimite
 char **Split_String(char *stringToParse, char *delimiter, int *nbElemsToExtract);
 //==========================
 //==========================
-typedef struct OrbitShape {
+typedef struct OrbitParams {
     double ra;
     double rp;
     double e;
@@ -86,10 +97,17 @@ typedef struct OrbitShape {
     double a;
     double b;
     double c;
-}OrbitShape;
-typedef struct OrbitShape OrbitShape;
-OrbitShape *New_OrbitShape_rarp(double ra, double rp);
-OrbitShape *New_OrbitShape_rae(double ra, double e);
-OrbitShape *New_OrbitShape_rpe(double rp, double e);
-OrbitShape *New_OrbitShape_pe(double p, double e);
+
+    double i; // inclination in deg
+    double lAscN; // longitude of the ascending node in deg
+    double omega; // argument of the perihelion in deg
+    double trueAnomaly; // true anomaly in deg
+}OrbitParams;
+typedef struct OrbitParams OrbitShape;
+OrbitParams *New_OrbitParams_rarp(double ra, double rp);
+OrbitParams *New_OrbitParams_rae(double ra, double e);
+OrbitParams *New_OrbitParams_rpe(double rp, double e);
+OrbitParams *New_OrbitParams_pe(double p, double e);
+OrbitParams *New_OrbitParams_pe_all(double p, double e, double i, double lAscN, double omega, double trueAnomaly);
+char *OrbitParams_ToString(OrbitParams *orbitShape, int decimalDigits);
 #endif
