@@ -72,37 +72,38 @@ OrbitParams *Orbit_From_RV(Vector3d *radial, Vector3d *velocity, double mu)
 Vector3d *ComputeImpactPoints(OrbitParams *orbit, double planetRadius)
 {
     Vector3d *impactPoints = malloc(sizeof(Vector3d)*4);
-    double a = orbit->a *0.001;
-    double b = orbit->b *0.001;
+    double a = orbit->a;
+    double b = orbit->b;
+    double r = planetRadius;
+    // Offsetting the ellipse orbit by c along the x-axis so that the planet origin and one of the two foci point are the same
+    double c = orbit->c;
+    // Solving the ellipse-circle intersection in the XY plane
+    double x = (-c*b*b+sqrt(-a*a*(a*a*b*b-a*a*r*r-pow(b,4)-b*b*c*c+b*b*r*r)))/(a*a-b*b);
+    double y = sqrt(r*r-x*x);
 
-    double r = planetRadius *0.001;
+    impactPoints[0] = *NewVector3d(x, y, 0);
+    impactPoints[1] = *NewVector3d(x, -y, 0);
+    impactPoints[2] = *NewVector3d(0, 0, 0);
+    impactPoints[3] = *NewVector3d(0, 0, 0);
 
-    // Starting with calculations in the plane X-Y
-    double insideRoot = (r*r-a*a)*b*b/(b*b-a*a);
-    double rraa = r*r-a*a;
-    double bbaa = b*b-a*a;
-    printf("r*r-a*a    = %.5f\n", rraa);
-    printf("b*b-a*a    = %.5f\n", bbaa);
-    printf("insideRoot = %.5f\n", insideRoot);
-    printf("r*r =        %.5f\n", r*r);
-    if(insideRoot == 0) {
-        // y equal 0, thus solving x*x + 0*0 = r^2
-        impactPoints[0] = *NewVector3d(sqrt(r), 0, 0);
-        impactPoints[1] = *NewVector3d(-sqrt(r), 0, 0);
-        impactPoints[2] = *NewVector3d(0, 0, 0);
-        impactPoints[3] = *NewVector3d(0, 0, 0);
+    // We can now compute the impact point in 3D world coordinate
+    // By applying a rotation matrix depending on the orbit's inclination
+    double i = orbit->i * deg2rad;
+    double ci = cos(i);
+    double si = sin(i);
+    for(int idx=0; idx<4; idx++) {
+        double b = impactPoints[idx].y;
+        double c = impactPoints[idx].z;
+        impactPoints[idx].y = b*ci - c*si;
+        impactPoints[idx].z = b*si + c*ci;
     }
-    else {
-        double sqrIn = sqrt(insideRoot);
-        impactPoints[0] = *NewVector3d(sqrt(r*r-insideRoot), sqrIn, 0);
-        impactPoints[1] = *NewVector3d(-sqrt(r*r-insideRoot), -sqrIn, 0);
-        impactPoints[2] = *NewVector3d(-sqrt(r*r-insideRoot), sqrIn, 0);
-        impactPoints[3] = *NewVector3d(sqrt(r*r-insideRoot), -sqrIn, 0);
-    }
+
+    printf("\n\n");
     printf("impactPoint[0]: x = %.5f; y = %.5f; z = %.5f\n", impactPoints[0].x, impactPoints[0].y, impactPoints[0].z);
     printf("impactPoint[1]: x = %.5f; y = %.5f; z = %.5f\n", impactPoints[1].x, impactPoints[1].y, impactPoints[1].z);
     printf("impactPoint[2]: x = %.5f; y = %.5f; z = %.5f\n", impactPoints[2].x, impactPoints[2].y, impactPoints[2].z);
     printf("impactPoint[3]: x = %.5f; y = %.5f; z = %.5f\n", impactPoints[3].x, impactPoints[3].y, impactPoints[3].z);
+
     return impactPoints;
 }
 
