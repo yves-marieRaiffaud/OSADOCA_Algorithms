@@ -49,27 +49,32 @@ Vector3d *NewVector3d(double x, double y, double z)
     return vec;
 }
 
-// Right, Left, Up, Down, Forward, Backward vectors
+// Shorthand for (1;0;0)
 Vector3d *V3d_Right()
 {
     return NewVector3d(1,0,0);
 }
+// Shorthand for (-1;0;0)
 Vector3d *V3d_Left()
 {
     return NewVector3d(-1,0,0);
 }
+// Shorthand for (0;0;1)
 Vector3d *V3d_Forward()
 {
     return NewVector3d(0,0,1);
 }
+// Shorthand for (0;0;-1)
 Vector3d *V3d_Backward()
 {
     return NewVector3d(0,0,-1);
 }
+// Shorthand for (0;1;0)
 Vector3d *V3d_Up()
 {
     return NewVector3d(0,1,0);
 }
+// Shorthand for (0;-1;0)
 Vector3d *V3d_Down()
 {
     return NewVector3d(0,-1,0);
@@ -134,6 +139,16 @@ Vector3d *V3d_Cross(Vector3d *vecA, Vector3d *vecB)
     vec->z = vecA->x*vecB->y - vecA->y*vecB->x;
     return vec;
 }
+// Normalize the vector3d
+Vector3d *V3d_Normalize(Vector3d *vec)
+{
+    double norm = V3d_Magnitude(vec);
+    Vector3d *outputVec = malloc(sizeof(Vector3d));
+    outputVec->x = vec->x/norm;
+    outputVec->y = vec->y/norm;
+    outputVec->z = vec->z/norm;
+    return outputVec;
+}
 // Square Magnitude of the Vector3d
 double V3d_SqrMagnitude(Vector3d *vec)
 {
@@ -194,6 +209,20 @@ Quaterniond *New_Imaginary_Quaterniond(double w)
 {
     double vecVal=0;
     return NewQuaterniond(vecVal,vecVal,vecVal,w);
+}
+// Creates a Quaterniond from the rotation axis 'axis' and the rotation value 'angle'
+Quaterniond *Q_AngleAxis(double angle, Vector3d *axis, bool angleInDegree)
+{
+    Vector3d *axisN = V3d_Normalize(axis);
+    double angleRad = angle;
+    if(angleInDegree == true)
+        angleRad = angle * deg2rad;
+    double qx = axisN->x*sin(angleRad/2);
+    double qy = axisN->y*sin(angleRad/2);
+    double qz = axisN->z*sin(angleRad/2);
+    double qw = cos(angleRad/2);
+    Quaterniond *quat = NewQuaterniond(qx, qy, qz, qw);
+    return Q_Normalize(quat);
 }
 // Returns the conjugate of the specified Quaterniond
 Quaterniond *Q_Conjugate(Quaterniond *quat)
@@ -292,10 +321,10 @@ Quaterniond *Q_QuatMultiply(Quaterniond *quatA, Quaterniond *quatB)
     double h = quatB->w;
 
 	Quaterniond *outputQuat = malloc(sizeof(Quaterniond));
-	outputQuat->x = a*f+b*e+c*h-d*g;
-	outputQuat->y = a*g-b*h+c*e+d*f;
-	outputQuat->z = a*h+b*g-c*f+d*e;
-    outputQuat->w = a*e-b*f-c*g-d*h;
+	outputQuat->x = d*e+a*h+b*g-c*f;
+	outputQuat->y = d*f-a*g+b*h+c*e;
+	outputQuat->z = d*g+a*f-b*e+c*h;
+    outputQuat->w = d*h-a*e-b*f-c*g;
     return outputQuat;
 }
 // Rotates a 3D point 'vec' by rotation 'quatA'

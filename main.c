@@ -140,6 +140,12 @@ int main(int argc, char *argv[])
     printf("\n");
     Vector3d *impactPoints = ComputeImpactPoints(orbitParams, equaREarth);
 
+    printf("\n\n");
+    printf("impactPoint[0]: x = %.5f; y = %.5f; z = %.5f\n", impactPoints[0].x, impactPoints[0].y, impactPoints[0].z);
+    printf("impactPoint[1]: x = %.5f; y = %.5f; z = %.5f\n", impactPoints[1].x, impactPoints[1].y, impactPoints[1].z);
+    printf("impactPoint[2]: x = %.5f; y = %.5f; z = %.5f\n", impactPoints[2].x, impactPoints[2].y, impactPoints[2].z);
+    printf("impactPoint[3]: x = %.5f; y = %.5f; z = %.5f\n", impactPoints[3].x, impactPoints[3].y, impactPoints[3].z);
+
     /*simEnvData = malloc(sizeof(SimEnvStruct));
     //=====DEBUG PURPOSES
     //char *str = "1 ; 2 ; 3.14 ; 4 ; 5 ; 6 ; 7.241 ; 8.2412 ; 9.141 ; 10.21 ; 11.531 ; 12.2352 ; 0.01 ; 0.02 ; 0.03 ; 0.04";

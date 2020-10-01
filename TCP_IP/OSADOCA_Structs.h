@@ -12,11 +12,17 @@ double ClampAngle_Deg(double lowerBound, double upperBound, double valueToClamp)
 double ClampAngle_RAD(double lowerBound, double upperBound, double valueToClamp);
 
 Vector3d *NewVector3d(double x, double y, double z);
+// Shorthand for (1;0;0)
 Vector3d *V3d_Right();
+// Shorthand for (-1;0;0)
 Vector3d *V3d_Left();
+// Shorthand for (0;0;1)
 Vector3d *V3d_Forward();
+// Shorthand for (0;0;-1)
 Vector3d *V3d_Backward();
+// Shorthand for (0;1;0)
 Vector3d *V3d_Up();
+// Shorthand for (0;-1;0)
 Vector3d *V3d_Down();
 Vector3d *V3d_Add(Vector3d *vecA, Vector3d *vecB);
 Vector3d *V3d_Substract(Vector3d *vecA, Vector3d *vecB);
@@ -30,6 +36,8 @@ Vector3d *V3d_Multiply_S(double factor, Vector3d *vecA);
 Vector3d *V3d_Divide_S(Vector3d *vecA, double denominator);
 // Cross product of two Vector3d
 Vector3d *V3d_Cross(Vector3d *vecA, Vector3d *vecB);
+// Normalize the vector3d
+Vector3d *V3d_Normalize(Vector3d *vec);
 // Magnitude of the Vector3d
 double V3d_Magnitude(Vector3d *vec);
 // Square Magnitude of the Vector3d
@@ -51,6 +59,8 @@ Quaterniond *NewQuaterniond(double x,double y,double z,double w);
 Quaterniond *New_Pure_Quaterniond(double x,double y,double z);
 // Constructor for an Imaginary Quaterniond (a vectorial part (X,Y,Z) of (0,0,0))
 Quaterniond *New_Imaginary_Quaterniond(double w);
+// Creates a Quaterniond from the rotation axis 'axis' and the rotation value 'angle' in deg
+Quaterniond *Q_AngleAxis(double angle, Vector3d *axis, bool angleInDegree);
 // Creates new Quaterniond from the specified Euler angles
 Quaterniond *NewQuaterniond_From_Euler(double xAngle,double yAngle,double zAngle);
 // Convert the specified Quaterniond to its representation using Euler angles in degrees
