@@ -31,6 +31,7 @@ plot3(target(1),target(2),target(3),'og','MarkerFaceColor','r');
 hitError = [inf inf inf];
 counter = 0;
 lastValidVel = v0;
+startTheta = atan2(x0(1),x0(2))*180/pi;
 requiredTheta = atan2(target(1),target(2))*180/pi;
 while(norm(hitError) > 5000 && counter < 120)
     fprintf('Iteration %d -- Velocity: [%.5f;%.5f;%.5f] m/s\n', counter,v0(1),v0(2),v0(3));
@@ -46,12 +47,11 @@ while(norm(hitError) > 5000 && counter < 120)
         if(theta >= requiredTheta)
             velocityIncr = -velocityIncr;
         end
-        v0(1) = v0(1) + velocityIncr;
+        v0 = v0 + velocityIncr*[cos(startTheta) sin(startTheta) 0];
     else
-        v0 = lastValidVel + [1 0 0];
         disp('Will not crash on the Earth''s surface');
         fprintf('Velocity = [%.5f;%.5f;%.5f]\n', v0(1),v0(2),v0(3));
-        v0(1) = v0(1) - 1;
+        v0 = v0 - 1*[cos(startTheta) sin(startTheta) 0];
     end
     t = linspace(0,2*pi);
     x = a*cos(t)+c;

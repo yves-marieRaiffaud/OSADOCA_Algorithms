@@ -73,32 +73,42 @@ OrbitParams *Orbit_From_RV(Vector3d *radial, Vector3d *velocity, double mu)
     return New_OrbitParams_pe_all(p, e, i, lAscN, omega, nu);
 }
 
-Vector3d *ComputeImpactPoints(OrbitParams *orbit, Vector3d *velocity, double planetRadius)
+Vector3d *Compute_ImpactPoints_inPlane(OrbitParams *orbit, double planetRadius)
 {
+    printf("i = %.5f ; lAscN = %.5f ; omega = %.5f\n", orbit->i, orbit->lAscN, orbit->omega);
+
     double a = orbit->a;
     double b = orbit->b;
     double r = planetRadius;
     // Offsetting the ellipse orbit by c along the x-axis so that the planet origin and one of the two foci point are the same
     double c = orbit->c;
     // Solving the ellipse-circle intersection in the XY plane
-    double x = (-c*b*b+sqrt(-a*a*(a*a*b*b-a*a*r*r-pow(b,4)-b*b*c*c+b*b*r*r)))/(a*a-b*b);
-    double y = sqrt(r*r-x*x);
+    double b2 = b*b;
+    double b4 = pow(b,4);
+    double a2 = a*a;
+    double r2 = r*r;
+    double c2 = c*c;
 
-    Vector3d *impactPoint = NewVector3d(x, y, 0);
+    double x = (-c*b2+sqrt(-a2*(a2*b2-a2*r2-b4-b2*c2+b2*r2)))/(a2-b2);
+    double y = sqrt(r2-x*x);
 
+    return NewVector3d(x, y, 0);
+}
+
+Vector3d *ComputeImpactPoints(OrbitParams *orbit, Vector3d *impactPoint)
+{
     // By definition, the +X-axis will represent the inclination rotation
-    // Without any rotation, the apogee line is along the +Y-axis
-    Vector3d *apogeeLineDir = NewVector3d(0,1,0);
-    Vector3d *ascendingNodeLineDir = V3d_Right();
+    // Without any rotation, the apogee line is along the +X-axis
+    Vector3d *apogeeLineDir = V3d_Right();
+    Vector3d *ascendingNodeLineDir = V3d_Forward();
     Quaterniond *iRotQuat = Q_AngleAxis(orbit->i, ascendingNodeLineDir, true);
     Vector3d *rotatedApogeeDir = Q_RotateVec(iRotQuat, apogeeLineDir);
 
     Vector3d *normalUp = V3d_Cross(ascendingNodeLineDir, rotatedApogeeDir);
-    Quaterniond *perihelionArgRot = Q_AngleAxis(90-orbit->omega, normalUp, true);
-    Quaterniond *lAscN_Rot = Q_AngleAxis(-(orbit->lAscN+90), V3d_Up(), true);
+    Quaterniond *perihelionArgRot = Q_AngleAxis(orbit->omega, normalUp, true);
+    Quaterniond *lAscN_Rot = Q_AngleAxis(orbit->lAscN, V3d_Up(), true);
     Quaterniond *rot = Q_QuatMultiply(lAscN_Rot, Q_QuatMultiply(perihelionArgRot, iRotQuat));
 
     impactPoint = Q_RotateVec(rot, impactPoint);
     return impactPoint;
 }
-

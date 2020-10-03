@@ -1,6 +1,7 @@
 #ifndef OSADOCA_STRUCTS
 #define OSADOCA_STRUCTS
 
+double ClampValue(double lowerBound, double upperBound, double valueToClamp);
 double ClampAngle_Deg(double lowerBound, double upperBound, double valueToClamp);
 double ClampAngle_RAD(double lowerBound, double upperBound, double valueToClamp);
 
@@ -42,6 +43,9 @@ Vector3d *V3d_Normalize(Vector3d *vec);
 double V3d_Magnitude(Vector3d *vec);
 // Square Magnitude of the Vector3d
 double V3d_SqrMagnitude(Vector3d *vec);
+// Element-Wise Sign of the Vector3d
+Vector3d *V3d_Sign(Vector3d *vec);
+// String representation of the Vector3d
 char *V3d_ToString(Vector3d *vec, int decimalDigits);
 
 // Equivalent in C of the Unity Quaterniond class

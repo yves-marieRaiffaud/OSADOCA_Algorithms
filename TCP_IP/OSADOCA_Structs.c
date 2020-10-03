@@ -15,6 +15,17 @@ typedef struct Vector3d Vector3d;
 typedef struct Quaterniond Quaterniond;
 typedef struct Orbit_Shape Orbit_Shape;
 
+double ClampValue(double lowerBound, double upperBound, double valueToClamp)
+{
+    double outputVal;
+    if(valueToClamp <= lowerBound)
+        outputVal = lowerBound;
+    else if(valueToClamp >= upperBound)
+        outputVal = upperBound;
+    else
+        outputVal = valueToClamp;
+    return outputVal;
+}
 double ClampAngle_Deg(double lowerBound, double upperBound, double valueToClamp)
 {
     int newAngle = valueToClamp;
@@ -26,7 +37,6 @@ double ClampAngle_Deg(double lowerBound, double upperBound, double valueToClamp)
     }
     return newAngle;
 }
-
 double ClampAngle_RAD(double lowerBound, double upperBound, double valueToClamp)
 {
     int newAngle = valueToClamp;
@@ -158,6 +168,24 @@ double V3d_SqrMagnitude(Vector3d *vec)
 double V3d_Magnitude(Vector3d *vec)
 {
     return sqrt(V3d_SqrMagnitude(vec));
+}
+// Element-Wise Sign of the Vector3d
+Vector3d *V3d_Sign(Vector3d *vec)
+{
+    double x, y, z;
+    if(vec->x <= 0)
+        x = -1;
+    else
+        x = 1;
+    if(vec->y <= 0)
+        y = -1;
+    else
+        y = 1;
+    if(vec->z <= 0)
+        z = -1;
+    else
+        z = 1;
+    return NewVector3d(x, y, z);
 }
 // Get string representation of the Vector3d
 char *V3d_ToString(Vector3d *vec, int decimalDigits)

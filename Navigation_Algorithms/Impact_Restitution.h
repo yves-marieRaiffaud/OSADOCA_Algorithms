@@ -6,7 +6,7 @@ typedef struct Quaterniond Quaterniond;
 typedef struct OrbitParams OrbitParams;
 
 OrbitParams *Orbit_From_RV(Vector3d *radial, Vector3d *velocity, double mu);
-Vector3d *ComputeImpactPoints(OrbitParams *orbit, Vector3d *velocity, double planetRadius);
-
+Vector3d *ComputeImpactPoints(OrbitParams *orbit, Vector3d *impactPoint);
+Vector3d *Compute_ImpactPoints_inPlane(OrbitParams *orbit, double planetRadius);
 
 #endif
