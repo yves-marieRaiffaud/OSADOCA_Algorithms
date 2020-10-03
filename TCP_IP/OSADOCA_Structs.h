@@ -1,15 +1,15 @@
 #ifndef OSADOCA_STRUCTS
 #define OSADOCA_STRUCTS
 
+double ClampAngle_Deg(double lowerBound, double upperBound, double valueToClamp);
+double ClampAngle_RAD(double lowerBound, double upperBound, double valueToClamp);
+
 typedef struct Vector3d {
     double x;
     double y;
     double z;
 }Vector3d;
 typedef struct Vector3d Vector3d;
-
-double ClampAngle_Deg(double lowerBound, double upperBound, double valueToClamp);
-double ClampAngle_RAD(double lowerBound, double upperBound, double valueToClamp);
 
 Vector3d *NewVector3d(double x, double y, double z);
 // Shorthand for (1;0;0)
@@ -100,13 +100,13 @@ char **Split_String(char *stringToParse, char *delimiter, int *nbElemsToExtract)
 //==========================
 //==========================
 typedef struct OrbitParams {
-    double ra;
-    double rp;
-    double e;
+    double ra; // m
+    double rp; // m
+    double e; // no dim
     double p;
-    double a;
-    double b;
-    double c;
+    double a; // m
+    double b; // m
+    double c; // m
 
     double i; // inclination in deg
     double lAscN; // longitude of the ascending node in deg

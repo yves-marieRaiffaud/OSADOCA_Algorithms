@@ -127,24 +127,36 @@ bool Check_ARGV(int argc)
 
 int main(int argc, char *argv[])
 {
-    OrbitParams *orbitParams = Orbit_From_RV(NewVector3d(0,0,6578000), NewVector3d(5000,0,0), muEarth*pow(10,muExponent));
-    printf(OrbitParams_ToString(orbitParams, 5));
+    Vector3d *target = NewVector3d(-equaREarth,0,0);
+    Vector3d *position = NewVector3d(0,0,6578000);
+    Vector3d *velocity = NewVector3d(7650,0,0);
 
-    if(orbitParams->rp <= equaREarth) {
-        printf("Will crash on Earth's surface !\n");
+    int counter = 0;
+    double hitErrorNorm = INFINITY;
+    while(hitErrorNorm > 10000 && counter < 40) {
+        printf("\nStarting iteration %d\n", counter);
+        printf("Velocity = %s", V3d_ToString(velocity,5));
+        OrbitParams *orbitParams = Orbit_From_RV(position, velocity, muEarth*pow(10,muExponent));
+        printf(OrbitParams_ToString(orbitParams, 5));
+        if(orbitParams->rp <= equaREarth) {
+            printf("Will crash on Earth's surface !\n");
+            Vector3d *impactPoint = ComputeImpactPoints(orbitParams, velocity, equaREarth);
+            Vector3d *hitError = V3d_Substract(target, impactPoint);
+            hitErrorNorm = abs(V3d_Magnitude(hitError));
+            printf("impactPoint = %s", V3d_ToString(impactPoint,5));
+            printf("hitError = %s || norm = %.5f\n", V3d_ToString(hitError,5), hitErrorNorm);
+            double velocityIncr = 0.00001*hitError->y;
+            printf("Velocity Incr = %.10f\n", velocityIncr);
+            velocity->x = velocity->x - velocityIncr;
+        }
+        else {
+            printf("Will NOT crash on Earth's surface !\n");
+            velocity->x = velocity->x - 100;
+        }
+        counter = counter + 1;
     }
-    else {
-        printf("Will NOT crash on Earth's surface !\n");
-    }
 
-    printf("\n");
-    Vector3d *impactPoints = ComputeImpactPoints(orbitParams, equaREarth);
 
-    printf("\n\n");
-    printf("impactPoint[0]: x = %.5f; y = %.5f; z = %.5f\n", impactPoints[0].x, impactPoints[0].y, impactPoints[0].z);
-    printf("impactPoint[1]: x = %.5f; y = %.5f; z = %.5f\n", impactPoints[1].x, impactPoints[1].y, impactPoints[1].z);
-    printf("impactPoint[2]: x = %.5f; y = %.5f; z = %.5f\n", impactPoints[2].x, impactPoints[2].y, impactPoints[2].z);
-    printf("impactPoint[3]: x = %.5f; y = %.5f; z = %.5f\n", impactPoints[3].x, impactPoints[3].y, impactPoints[3].z);
 
     /*simEnvData = malloc(sizeof(SimEnvStruct));
     //=====DEBUG PURPOSES
