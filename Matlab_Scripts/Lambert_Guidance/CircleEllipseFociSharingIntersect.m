@@ -9,5 +9,6 @@ function impactPoints = CircleEllipseFociSharingIntersect(a, b, ellipseOriginX, 
     c = ellipseOriginX;
     x = (-c*b^2+sqrt(-a^2*(a^2*b^2-a^2*r^2-b^4-b^2*c^2+b^2*r^2)))/(a^2-b^2);
     y = sqrt(r^2-x^2);
-    impactPoints = [x y 0; x -y 0];
+    % Ignoring other solution [x -y 0]
+    impactPoints = [x y 0;x -y 0];
 end

@@ -173,18 +173,24 @@ double V3d_Magnitude(Vector3d *vec)
 Vector3d *V3d_Sign(Vector3d *vec)
 {
     double x, y, z;
-    if(vec->x <= 0)
+    if(vec->x < 0)
         x = -1;
-    else
+    else if(vec->x > 0)
         x = 1;
-    if(vec->y <= 0)
+    else
+        x = 0;
+    if(vec->y < 0)
         y = -1;
-    else
+    else if(vec->y > 0)
         y = 1;
-    if(vec->z <= 0)
-        z = -1;
     else
+        y = 0;
+    if(vec->z < 0)
+        z = -1;
+    else if(vec->z > 0)
         z = 1;
+    else
+        z = 0;
     return NewVector3d(x, y, z);
 }
 // Get string representation of the Vector3d

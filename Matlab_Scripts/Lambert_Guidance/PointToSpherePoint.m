@@ -16,7 +16,7 @@ function sphericalImpactP = PointToSpherePoint(Points, i, lAscN, omega, anglesIn
 
     normalUp = cross(ascendingNodeLineDir, rotatedApogeeDir);
     perihelionArgRot = Q_AngleAxis(omega, normalUp, false);
-    lAscNRot = Q_AngleAxis(lAscN, [0 0 1], false);
+    lAscNRot = Q_AngleAxis(3*pi/2-lAscN, [0 0 1], false);
     rotQuat = Q_Multiply(lAscNRot, Q_Multiply(perihelionArgRot, iRotQuat));
     
     sphericalImpactP = Points;

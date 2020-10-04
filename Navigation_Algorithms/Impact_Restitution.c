@@ -83,11 +83,11 @@ Vector3d *Compute_ImpactPoints_inPlane(OrbitParams *orbit, double planetRadius)
     // Offsetting the ellipse orbit by c along the x-axis so that the planet origin and one of the two foci point are the same
     double c = orbit->c;
     // Solving the ellipse-circle intersection in the XY plane
+    double a2 = a*a;
     double b2 = b*b;
     double b4 = pow(b,4);
-    double a2 = a*a;
-    double r2 = r*r;
     double c2 = c*c;
+    double r2 = r*r;
 
     double x = (-c*b2+sqrt(-a2*(a2*b2-a2*r2-b4-b2*c2+b2*r2)))/(a2-b2);
     double y = sqrt(r2-x*x);
@@ -95,18 +95,18 @@ Vector3d *Compute_ImpactPoints_inPlane(OrbitParams *orbit, double planetRadius)
     return NewVector3d(x, y, 0);
 }
 
-Vector3d *ComputeImpactPoints(OrbitParams *orbit, Vector3d *impactPoint)
+Vector3d *Get_ImpactPoint_in3DWorld(OrbitParams *orbit, Vector3d *impactPoint)
 {
     // By definition, the +X-axis will represent the inclination rotation
     // Without any rotation, the apogee line is along the +X-axis
     Vector3d *apogeeLineDir = V3d_Right();
-    Vector3d *ascendingNodeLineDir = V3d_Forward();
+    Vector3d *ascendingNodeLineDir = V3d_Up();
     Quaterniond *iRotQuat = Q_AngleAxis(orbit->i, ascendingNodeLineDir, true);
     Vector3d *rotatedApogeeDir = Q_RotateVec(iRotQuat, apogeeLineDir);
 
     Vector3d *normalUp = V3d_Cross(ascendingNodeLineDir, rotatedApogeeDir);
     Quaterniond *perihelionArgRot = Q_AngleAxis(orbit->omega, normalUp, true);
-    Quaterniond *lAscN_Rot = Q_AngleAxis(orbit->lAscN, V3d_Up(), true);
+    Quaterniond *lAscN_Rot = Q_AngleAxis(orbit->lAscN, V3d_Forward(), true);
     Quaterniond *rot = Q_QuatMultiply(lAscN_Rot, Q_QuatMultiply(perihelionArgRot, iRotQuat));
 
     impactPoint = Q_RotateVec(rot, impactPoint);
