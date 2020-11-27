@@ -75,7 +75,13 @@ OrbitParams *Orbit_From_RV(Vector3d *radial, Vector3d *velocity, double mu)
 
 Vector3d *Compute_ImpactPoints_inPlane(OrbitParams *orbit, double planetRadius)
 {
-    printf("i = %.5f ; lAscN = %.5f ; omega = %.5f\n", orbit->i, orbit->lAscN, orbit->omega);
+    // Computing the intersection between the elliptical orbit 'orbit' whose focal is at the origin of the frame,
+    // and with the Earth's surface represented by a circle of radius rEarth and positioned at the origin of the frame
+    // Both the circle and the ellipsis are in the same plane: plane (XY): +X horizontal right vec & +Y vertical positive
+    // The semi-major axis of the ellipsis is along the Y-axis, with its periapsis towards +Y, and its apoapsis towards -Y
+    // The intersection is found solving analytically the following system:
+    // (Equation.1) ==> (x^2/a^2) + (y+c)^2/b^2 = 1     : Ellipsis of the orbit positioned at (0,-c) in the frame
+    // (Equation.2) ==>  x^2 + y^2 = rEarth^2           : Circle representing Earth's surface positioned at (0,0) in the frame
 
     double a = orbit->a;
     double b = orbit->b;
@@ -84,13 +90,18 @@ Vector3d *Compute_ImpactPoints_inPlane(OrbitParams *orbit, double planetRadius)
     double c = orbit->c;
     // Solving the ellipse-circle intersection in the XY plane
     double a2 = a*a;
+    double a4 = a2*a2;
     double b2 = b*b;
-    double b4 = pow(b,4);
     double c2 = c*c;
     double r2 = r*r;
 
-    double x = (-c*b2+sqrt(-a2*(a2*b2-a2*r2-b4-b2*c2+b2*r2)))/(a2-b2);
-    double y = sqrt(r2-x*x);
+    double num = a4*(-(b2+c2-r2))+a2*b2*(b2-c2-r2) + 2*sqrt(a4*b2*c2*(a4-a2*(b2-c2+r2)+b2*r2));
+    double denom = pow(a2-b2, 2);
+    double x = sqrt(num/denom);
+
+    num = sqrt(a4*b2*c2*(a4-a2*(b2-c2+r2)+b2*r2)) - a4*c2;
+    denom = a2*c*(a2-b2);
+    double y = -num/denom;
 
     return NewVector3d(x, y, 0);
 }

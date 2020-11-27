@@ -193,6 +193,13 @@ Vector3d *V3d_Sign(Vector3d *vec)
         z = 0;
     return NewVector3d(x, y, z);
 }
+// Check if the vector or one of its components is nan
+bool V3d_IsNan(Vector3d *vec)
+{
+    if(isnan(vec->x) || isnan(vec->y) || isnan(vec->z))
+        return true;
+    return false;
+}
 // Get string representation of the Vector3d
 char *V3d_ToString(Vector3d *vec, int decimalDigits)
 {
