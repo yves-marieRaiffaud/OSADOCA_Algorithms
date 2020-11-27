@@ -1,5 +1,3 @@
-#include <sys/socket.h>
-#include <arpa/inet.h> 
 #include <unistd.h>
 #include <stdbool.h> 
 #include <math.h>
@@ -83,12 +81,10 @@ Vector3d *Compute_ImpactPoints_inPlane(OrbitParams *orbit, double planetRadius)
     // (Equation.1) ==> (x^2/a^2) + (y+c)^2/b^2 = 1     : Ellipsis of the orbit positioned at (0,-c) in the frame
     // (Equation.2) ==>  x^2 + y^2 = rEarth^2           : Circle representing Earth's surface positioned at (0,0) in the frame
 
-    double a = orbit->a;
-    double b = orbit->b;
-    double r = planetRadius;
-    // Offsetting the ellipse orbit by c along the x-axis so that the planet origin and one of the two foci point are the same
-    double c = orbit->c;
-    // Solving the ellipse-circle intersection in the XY plane
+    double a = orbit->a; // Semi-Major axis in meters
+    double b = orbit->b; // Semi-Minor axis in meters
+    double r = planetRadius; // Earth radius in meters
+    double c = orbit->c; // Distance ellipsis center-focal
     double a2 = a*a;
     double a4 = a2*a2;
     double b2 = b*b;
@@ -112,7 +108,7 @@ Vector3d *Get_ImpactPoint_in3DWorld(OrbitParams *orbit, Vector3d *impactPoint)
     // Without any rotation, the apogee line is along the +X-axis
     Vector3d *apogeeLineDir = V3d_Right();
     Vector3d *ascendingNodeLineDir = V3d_Up();
-    Quaterniond *iRotQuat = Q_AngleAxis(orbit->i, ascendingNodeLineDir, true);
+    Quaterniond *iRotQuat = Q_AngleAxis(90-orbit->i, ascendingNodeLineDir, true);
     Vector3d *rotatedApogeeDir = Q_RotateVec(iRotQuat, apogeeLineDir);
 
     Vector3d *normalUp = V3d_Cross(ascendingNodeLineDir, rotatedApogeeDir);

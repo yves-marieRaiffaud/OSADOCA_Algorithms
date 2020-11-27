@@ -169,6 +169,7 @@ int main(int argc, char *argv[])
             printf("impactPoint (km) = %s", V3d_ToString(V3d_Divide_S(impactPoint_inPlane,1000),5));
             printf("hitError (km) = %s", V3d_ToString(V3d_Divide_S(hitError,1000),5));
             printf("magnitude hitError (km) = %.5f\n", V3d_Magnitude(hitError));
+            printf("3D Impact point = %s", V3d_ToString(Get_ImpactPoint_in3DWorld(orbitParams, impactPoint_inPlane), 5));
         }
         else {
             velocity = V3d_Substract(lastValidVel, V3d_Multiply_S(1, NewVector3d(cos(startTheta), sin(startTheta), 0)));
