@@ -98,24 +98,27 @@ Vector3d *Compute_ImpactPoints_inPlane(OrbitParams *orbit, double planetRadius)
     num = sqrt(a4*b2*c2*(a4-a2*(b2-c2+r2)+b2*r2)) - a4*c2;
     denom = a2*c*(a2-b2);
     double y = -num/denom;
-
+    // Solution in meters
     return NewVector3d(x, y, 0);
 }
 
 Vector3d *Get_ImpactPoint_in3DWorld(OrbitParams *orbit, Vector3d *impactPoint)
 {
+    // By default and to be coherent with Unity X-Y-Z axis, an impact point calculated with the method 'Compute_ImpactPoints_inPlane'  will be from the plane (XY) in the 2D method
+    // to the (XZ) plane (with orbit's inclination i == 0)
     // By definition, the +X-axis will represent the inclination rotation
     // Without any rotation, the apogee line is along the +X-axis
     Vector3d *apogeeLineDir = V3d_Right();
-    Vector3d *ascendingNodeLineDir = V3d_Up();
-    Quaterniond *iRotQuat = Q_AngleAxis(90-orbit->i, ascendingNodeLineDir, true);
+    Vector3d *ascendingNodeLineDir = V3d_Forward();
+    Quaterniond *iRotQuat = Q_AngleAxis(orbit->i, ascendingNodeLineDir, true);
     Vector3d *rotatedApogeeDir = Q_RotateVec(iRotQuat, apogeeLineDir);
 
     Vector3d *normalUp = V3d_Cross(ascendingNodeLineDir, rotatedApogeeDir);
     Quaterniond *perihelionArgRot = Q_AngleAxis(orbit->omega, normalUp, true);
-    Quaterniond *lAscN_Rot = Q_AngleAxis(orbit->lAscN, V3d_Forward(), true);
+    Quaterniond *lAscN_Rot = Q_AngleAxis(orbit->lAscN, V3d_Up(), true);
     Quaterniond *rot = Q_QuatMultiply(lAscN_Rot, Q_QuatMultiply(perihelionArgRot, iRotQuat));
 
     impactPoint = Q_RotateVec(rot, impactPoint);
+    // Impact point in meters
     return impactPoint;
 }

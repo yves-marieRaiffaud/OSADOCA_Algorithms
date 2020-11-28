@@ -138,20 +138,24 @@ int main(int argc, char *argv[])
     double requiredTheta = atan2(target->x,target->y)*rad2deg; // Angle in degrees to reach between the start & end position
     double theta; // angle computed during loops
 
+    
+
     double startTime = rt_timer_read(); // for performance measure
 
-    while(V3d_Magnitude(hitError) > 100000 && counter < 100 || V3d_IsNan(hitError)) {
+    while((V3d_Magnitude(hitError) > 100 || V3d_IsNan(hitError)) && counter < 100) {
         printf("\nStarting iteration %d\n", counter);
         printf("Velocity = %s", V3d_ToString(velocity,5));
         OrbitParams *orbitParams = Orbit_From_RV(position, velocity, muEarth*pow(10,muExponent));
+        printf(OrbitParams_ToString(orbitParams, 5));
 
         if(orbitParams->rp <= equaREarth) {
             printf("Will crash on Earth's surface !\n");
             lastValidVel = velocity;
 
             Vector3d *impactPoint_inPlane = Compute_ImpactPoints_inPlane(orbitParams, equaREarth);
+            Vector3d *impactP_3d = Get_ImpactPoint_in3DWorld(orbitParams, impactPoint_inPlane);
 
-            hitError = V3d_Substract(impactPoint_inPlane, target);
+            hitError = V3d_Substract(impactPoint_inPlane, target); // meters
             theta = 90-atan2(impactPoint_inPlane->x, impactPoint_inPlane->y)*rad2deg;
 
             double circleHitError = sqrt(6378*6378 - pow(abs(hitError->y/1000)-6378, 2));
@@ -168,8 +172,9 @@ int main(int argc, char *argv[])
             printf("CircleHitError = %.7f km ; Velocity Incr = %.6f m/s\n", circleHitError, velocityIncr);
             printf("impactPoint (km) = %s", V3d_ToString(V3d_Divide_S(impactPoint_inPlane,1000),5));
             printf("hitError (km) = %s", V3d_ToString(V3d_Divide_S(hitError,1000),5));
-            printf("magnitude hitError (km) = %.5f\n", V3d_Magnitude(hitError));
+            printf("magnitude hitError (km) = %.5f\n", V3d_Magnitude(hitError)/1000);
             printf("3D Impact point = %s", V3d_ToString(Get_ImpactPoint_in3DWorld(orbitParams, impactPoint_inPlane), 5));
+            printf("regjbzer = %s", V3d_ToString(impactP_3d, 5));
         }
         else {
             velocity = V3d_Substract(lastValidVel, V3d_Multiply_S(1, NewVector3d(cos(startTheta), sin(startTheta), 0)));
